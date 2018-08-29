@@ -1,0 +1,2 @@
+# WowPlugin
+WowPlugin AutoSkill
