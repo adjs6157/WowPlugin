@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <map>
+#include <vector>
 #include <string>
 using namespace Gdiplus;
 
@@ -63,4 +64,5 @@ private:
 	std::map<std::string, GameIconInfo> m_akGameIconMidInfo;
 	DWORD m_aiPoolGameSnap[2000][2000];
 	int m_iStartPlayGame;
+	std::vector<int> m_aiMessage;
 };

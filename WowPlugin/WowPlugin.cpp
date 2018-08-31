@@ -22,6 +22,7 @@ WowPlugin::WowPlugin()
 	m_akGameIconLeftTopInfo.clear();
 	m_akGameIconMidInfo.clear();
 	m_iStartPlayGame = 0;
+	m_aiMessage.clear();
 }
 
 WowPlugin::~WowPlugin()
@@ -154,8 +155,7 @@ void WowPlugin::PlayGame()
 	// 当钉刺BUFF只剩一秒，或者钉刺BUFF没有的状态下，使用钉刺射击
 	if (kBuffDingOneSecond.fComPareRate > 0.9f || kBuffDingOneSecond.fComPareRate < 0.1f && kBuffDing.fComPareRate < 0.1f)
 	{
-		SendMessage(m_iTargetHandle, WM_KEYDOWN, VK_NUMPAD7, 0);
-		SendMessage(m_iTargetHandle, WM_KEYUP, VK_NUMPAD7, 0);
+		m_aiMessage.push_back(VK_NUMPAD7);
 		OutputDebugStringA("kSkillF\n");
 	}
 
@@ -163,8 +163,7 @@ void WowPlugin::PlayGame()
 	GameIconInfo& kSkill1 = m_akGameIconMidBottomInfo[SKILL_1];
 	if (kSkill1.fComPareRate > 0.9f)
 	{
-		SendMessage(m_iTargetHandle, WM_KEYDOWN, VK_NUMPAD1, 0);
-		SendMessage(m_iTargetHandle, WM_KEYUP, VK_NUMPAD1, 0);
+		m_aiMessage.push_back(VK_NUMPAD1);
 		OutputDebugStringA("kSkill1\n");
 	}
 
@@ -172,8 +171,7 @@ void WowPlugin::PlayGame()
 	GameIconInfo& kSkill2 = m_akGameIconMidBottomInfo[SKILL_2];
 	if (kSkill2.fComPareRate > 0.9f)
 	{
-		SendMessage(m_iTargetHandle, WM_KEYDOWN, VK_NUMPAD2, 0);
-		SendMessage(m_iTargetHandle, WM_KEYUP, VK_NUMPAD2, 0);
+		m_aiMessage.push_back(VK_NUMPAD2);
 		OutputDebugStringA("kSkill2\n");
 	}
 
@@ -181,8 +179,7 @@ void WowPlugin::PlayGame()
 	GameIconInfo& kSkill3 = m_akGameIconMidBottomInfo[SKILL_3];
 	if (kSkill3.fComPareRate > 0.9f)
 	{
-		SendMessage(m_iTargetHandle, WM_KEYDOWN, VK_NUMPAD3, 0);
-		SendMessage(m_iTargetHandle, WM_KEYUP, VK_NUMPAD3, 0);
+		m_aiMessage.push_back(VK_NUMPAD3);
 		OutputDebugStringA("kSkill3\n");
 	}
 
@@ -190,8 +187,7 @@ void WowPlugin::PlayGame()
 	GameIconInfo& kSkill4 = m_akGameIconMidBottomInfo[SKILL_4];
 	if (kSkill4.fComPareRate > 0.9f)
 	{
-		SendMessage(m_iTargetHandle, WM_KEYDOWN, VK_NUMPAD4, 0);
-		SendMessage(m_iTargetHandle, WM_KEYUP, VK_NUMPAD4, 0);
+		m_aiMessage.push_back(VK_NUMPAD4);
 		OutputDebugStringA("kSkill4\n");
 	}
 
@@ -201,8 +197,7 @@ void WowPlugin::PlayGame()
 		GameIconInfo& kSkillT = m_akGameIconMidBottomInfo[SKILL_T];
 		if (kSkillT.fComPareRate > 0.9f && (kBuffShunPi.fComPareRate < 0.1f || kBuffDingOneSecond.fComPareRate > 0.9f))
 		{
-			SendMessage(m_iTargetHandle, WM_KEYDOWN, VK_NUMPAD8, 0);
-			SendMessage(m_iTargetHandle, WM_KEYUP, VK_NUMPAD8, 0);
+			m_aiMessage.push_back(VK_NUMPAD8);
 			OutputDebugStringA("kSkillT\n");
 		}
 
@@ -210,8 +205,7 @@ void WowPlugin::PlayGame()
 		GameIconInfo& kSkillG = m_akGameIconMidBottomInfo[SKILL_G];
 		if (kSkillG.fComPareRate > 0.9f)
 		{
-			SendMessage(m_iTargetHandle, WM_KEYDOWN, VK_NUMPAD9, 0);
-			SendMessage(m_iTargetHandle, WM_KEYUP, VK_NUMPAD9, 0);
+			m_aiMessage.push_back(VK_NUMPAD9);
 			OutputDebugStringA("kSkillG\n");
 		}
 	}
@@ -221,8 +215,7 @@ void WowPlugin::PlayGame()
 	GameIconInfo& kSkillR = m_akGameIconMidBottomInfo[SKILL_R];
 	if (kSkillR.fComPareRate > 0.9f)
 	{
-		SendMessage(m_iTargetHandle, WM_KEYDOWN, VK_NUMPAD6, 0);
-		SendMessage(m_iTargetHandle, WM_KEYUP, VK_NUMPAD6, 0);
+		m_aiMessage.push_back(VK_NUMPAD6);
 		OutputDebugStringA("kSkillR\n");
 	}
 
@@ -232,8 +225,7 @@ void WowPlugin::PlayGame()
 		GameIconInfo& kSkill5 = m_akGameIconMidBottomInfo[SKILL_5];
 		if (kSkill5.fComPareRate > 0.9f && kBuffPowerBar.fComPareRate > 0.65f && kSkill4.fComPareRate < 0.9)
 		{
-			SendMessage(m_iTargetHandle, WM_KEYDOWN, VK_NUMPAD5, 0);
-			SendMessage(m_iTargetHandle, WM_KEYUP, VK_NUMPAD5, 0);
+			m_aiMessage.push_back(VK_NUMPAD5);
 			OutputDebugStringA("kSkill5\n");
 		}
 	}
@@ -243,12 +235,18 @@ void WowPlugin::PlayGame()
 		GameIconInfo& kSkill5 = m_akGameIconMidBottomInfo[SKILL_5];
 		if (kSkill5.fComPareRate > 0.9f && kBuffPowerBar.fComPareRate > 0.76f && kBuffShunPi.fComPareRate > 0.9f && kBuffShunPiOneSecond.fComPareRate < 0.1f)
 		{
-			SendMessage(m_iTargetHandle, WM_KEYDOWN, VK_NUMPAD5, 0);
-			SendMessage(m_iTargetHandle, WM_KEYUP, VK_NUMPAD5, 0);
+			m_aiMessage.push_back(VK_NUMPAD5);
+			
 			OutputDebugStringA("kSkill5\n");
 		}
 	}
 
+	for (int i = m_aiMessage.size() - 1; i >= 0; --i)
+	{
+		SendMessage(m_iTargetHandle, WM_KEYDOWN, m_aiMessage[i], 0);
+		SendMessage(m_iTargetHandle, WM_KEYUP, m_aiMessage[i], 0);
+	}
+	m_aiMessage.clear();
 }
 
 void WowPlugin::ProcessInput()
