@@ -218,6 +218,8 @@ void WowPlugin::PlayGame()
 	GameIconInfo& kEnemyCount = m_akGameIconMidBottomInfo[BUFF_ENEMY_COUNT];
 	GameIconInfo& kEnemyHP = m_akGameIconMidBottomInfo[BUFF_ENEMY_HP];
 
+	if (kEnemyCount.fComPareRate <= 0.1f) return;
+
 
 	// 宠物治疗
 	if (m_bIsCurePet)
@@ -231,7 +233,7 @@ void WowPlugin::PlayGame()
 	}
 
 	// 当钉刺BUFF只剩一秒，或者钉刺BUFF没有的状态下，使用钉刺射击
-	if (kDing_Skill_2.fComPareRate > 0.9f || kBuffDing.fComPareRate < 0.7f && (kDing_Skill_1.fComPareRate > 0.9f || kDing_Skill_2.fComPareRate > 0.9f))
+	if (/*kDing_Skill_2.fComPareRate > 0.9f || */kBuffDing.fComPareRate < 0.7f && (kDing_Skill_1.fComPareRate > 0.9f || kDing_Skill_2.fComPareRate > 0.9f))
 	{
 		AddMessage(VK_NUMPAD7, "SKILL_DING ");
 		return;
@@ -296,18 +298,36 @@ void WowPlugin::PlayGame()
 
 	// 狂野怒火，好了就用
 	GameIconInfo& kSkill3 = m_akGameIconMidBottomInfo[SKILL_HONGREN];
-	if (kSkill3.fComPareRate > 0.9f && kEnemyHP.fComPareRate > 0.9f)
+	if (kSkill3.fComPareRate > 0.9f)
 	{
-		AddMessage(VK_NUMPAD3, "SKILL_HONGREN ");
-		return;
+		if (m_iStartPlayGame == 2 && kEnemyHP.fComPareRate > 0.9f)
+		{
+			AddMessage(VK_NUMPAD3, "SKILL_HONGREN ");
+			return;
+		}
+		else if (m_iStartPlayGame == 1)
+		{
+			AddMessage(VK_NUMPAD3, "SKILL_HONGREN ");
+			return;
+		}
+			
+		
 	}
 
 	// 野性守护，好了就用 加暴击回集中值
 	GameIconInfo& kSkill2 = m_akGameIconMidBottomInfo[SKILL_LVYE];
-	if (kSkill2.fComPareRate > 0.9f && kEnemyHP.fComPareRate > 0.9f)
+	if (kSkill2.fComPareRate > 0.9f)
 	{
-		AddMessage(VK_NUMPAD2, "SKILL_LVYE ");
-		return;
+		if (m_iStartPlayGame == 2 && kEnemyHP.fComPareRate > 0.9f)
+		{
+			AddMessage(VK_NUMPAD2, "SKILL_LVYE ");
+			return;
+		}
+		else if (m_iStartPlayGame == 1)
+		{
+			AddMessage(VK_NUMPAD2, "SKILL_LVYE ");
+			return;
+		}
 	}
 	
 
@@ -643,7 +663,7 @@ void WowPlugin::ComPareImageNormal(int iBeginX, int iEndX, int iBeginY, int iEnd
 					if (fComPareRate > kGameIconInfo.fComPareRate)
 					{
 						kGameIconInfo.fComPareRate = fComPareRate;
-						if (fComPareRate > 0.9f)
+						if (fComPareRate > 0.99f)
 						{
 							kGameIconInfo.iComPareBeginX = i;
 							kGameIconInfo.iComPareBeginY = j;
