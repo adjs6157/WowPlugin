@@ -46,8 +46,13 @@ public:
 
 	bool InitGame();
 	void GameLoop();
+
+	void SetIsCurePet(bool bValue) { m_bIsCurePet = bValue; }
+	void SetIsAltStopAttack(bool bValue) { m_bIsAltStopAttack = bValue; }
+protected:
 	void ProcessInput();
 	void PlayGame();
+	void AddMessage(int iMessage, char* acDebugStr = nullptr);
 	HBITMAP ScreenShotByWndPos(HWND hWnd);
 	void AddGameIconInfo(std::string kKey, std::string kFileName, std::map<std::string, GameIconInfo>& akGameIconInfo);
 	void RefrashIconInfoFast();
@@ -60,9 +65,14 @@ public:
 private:
 	HWND m_iTargetHandle;
 	std::map<std::string, GameIconInfo> m_akGameIconMidBottomInfo;
-	std::map<std::string, GameIconInfo> m_akGameIconLeftTopInfo;
-	std::map<std::string, GameIconInfo> m_akGameIconMidInfo;
+	//std::map<std::string, GameIconInfo> m_akGameIconLeftTopInfo;
+	//std::map<std::string, GameIconInfo> m_akGameIconMidInfo;
 	DWORD m_aiPoolGameSnap[2000][2000];
 	int m_iStartPlayGame;
 	std::vector<int> m_aiMessage;
+	std::vector<int> m_aiMessageUpTime;
+	std::vector<int> m_aiMessangeDownTime;
+	bool m_bIsCurePet;
+	bool m_bIsAltStopAttack;
+	int m_iLastAltTime;
 };

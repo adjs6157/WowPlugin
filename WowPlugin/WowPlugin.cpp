@@ -1,35 +1,43 @@
 #include "WowPlugin.h"
 
-#define SKILL_1 "skill_1"
-#define SKILL_2 "skill_2"
-#define SKILL_3 "skill_3"
-#define SKILL_4 "skill_4"
-#define SKILL_5 "skill_5"
-#define SKILL_R "skill_R"
-#define SKILL_F "skill_F"
-#define SKILL_T "skill_T"
-#define SKILL_G "skill_G"
-#define BUFF_DING1_1 "buff_1"
-#define BUFF_DING "buff_2"
-#define BUFF_POWERBAR "buff_3"
-#define BUFF_SHUNPI_ONE_SECOND "buff_4"
-#define BUFF_SHUNPI	"buff_5"
+#define SKILL_WUYA "夺命乌鸦"
+#define SKILL_LVYE "绿叶"
+#define SKILL_HONGREN "红人"
+#define SKILL_SHALU "杀戮指令"
+#define SKILL_YANJING "眼镜蛇射击"
+#define SKILL_QIMEILA "奇美拉射击"
+#define SKILL_DING "钉刺两层"
+#define SKILL_DING_1 "钉刺一层"
+#define SKILL_DUOCHONG "多重射击"
+#define SKILL_DANMU "弹幕射击"
+#define SKILL_CURE_PET "治疗宠物"
+
+#define BUFF_DING "钉刺BUFF"
+#define BUFF_SHUNPI	"顺劈BUFF"
+#define BUFF_SELF_POWERBAR "自己集中值"
+#define BUFF_PET_HP "宠物生命值"
+#define BUFF_ENEMY_COUNT "敌人个数"
+#define BUFF_ENEMY_HP "敌人总血量"
 
 WowPlugin::WowPlugin()
 {
 	m_iTargetHandle = 0;
 	m_akGameIconMidBottomInfo.clear();
-	m_akGameIconLeftTopInfo.clear();
-	m_akGameIconMidInfo.clear();
+	//m_akGameIconLeftTopInfo.clear();
+	//m_akGameIconMidInfo.clear();
 	m_iStartPlayGame = 0;
 	m_aiMessage.clear();
+	m_aiMessageUpTime.clear();
+	m_aiMessangeDownTime.clear();
+	m_bIsCurePet = false;
+	m_iLastAltTime = false;
 }
 
 WowPlugin::~WowPlugin()
 {
 	m_akGameIconMidBottomInfo.clear();
-	m_akGameIconLeftTopInfo.clear();
-	m_akGameIconMidInfo.clear();
+	//m_akGameIconLeftTopInfo.clear();
+	//m_akGameIconMidInfo.clear();
 }
 
 bool WowPlugin::InitGame()
@@ -37,30 +45,46 @@ bool WowPlugin::InitGame()
 	m_iTargetHandle = FindWindowA(NULL, "魔兽世界");
 
 	// 添加技能图标
-	AddGameIconInfo(SKILL_1, "skill_1.bmp", m_akGameIconMidBottomInfo);
-	AddGameIconInfo(SKILL_2, "skill_2.bmp", m_akGameIconMidBottomInfo);
-	AddGameIconInfo(SKILL_3, "skill_3.bmp", m_akGameIconMidBottomInfo);
-	AddGameIconInfo(SKILL_4, "skill_4.bmp", m_akGameIconMidBottomInfo);
-	AddGameIconInfo(SKILL_5, "skill_5.bmp", m_akGameIconMidBottomInfo);
-	AddGameIconInfo(SKILL_R, "skill_6.bmp", m_akGameIconMidBottomInfo);
-	AddGameIconInfo(SKILL_F, "skill_7.bmp", m_akGameIconMidBottomInfo);
-	AddGameIconInfo(SKILL_T, "skill_8.bmp", m_akGameIconMidBottomInfo);
-	AddGameIconInfo(SKILL_G, "skill_9.bmp", m_akGameIconMidBottomInfo);
+	AddGameIconInfo(SKILL_WUYA, "skill_1.bmp", m_akGameIconMidBottomInfo);
+	AddGameIconInfo(SKILL_LVYE, "skill_2.bmp", m_akGameIconMidBottomInfo);
+	AddGameIconInfo(SKILL_HONGREN, "skill_3.bmp", m_akGameIconMidBottomInfo);
+	AddGameIconInfo(SKILL_SHALU, "skill_4.bmp", m_akGameIconMidBottomInfo);
+	AddGameIconInfo(SKILL_YANJING, "skill_5.bmp", m_akGameIconMidBottomInfo);
+	AddGameIconInfo(SKILL_QIMEILA, "skill_6.bmp", m_akGameIconMidBottomInfo);
+	AddGameIconInfo(SKILL_DING, "skill_7.bmp", m_akGameIconMidBottomInfo);
+	AddGameIconInfo(SKILL_DING_1, "skill_7_1.bmp", m_akGameIconMidBottomInfo);
+	AddGameIconInfo(SKILL_DUOCHONG, "skill_8.bmp", m_akGameIconMidBottomInfo);
+	AddGameIconInfo(SKILL_DANMU, "skill_9.bmp", m_akGameIconMidBottomInfo);
+	AddGameIconInfo(SKILL_CURE_PET, "skill_10.bmp", m_akGameIconMidBottomInfo);
 
-	// 添加中间BUFF图标
-	AddGameIconInfo(BUFF_DING1_1, "buff_1.bmp", m_akGameIconMidInfo);
-	AddGameIconInfo(BUFF_DING, "buff_2.bmp", m_akGameIconMidInfo);
-	AddGameIconInfo(BUFF_SHUNPI_ONE_SECOND, "buff_4.bmp", m_akGameIconMidInfo);
-	AddGameIconInfo(BUFF_SHUNPI, "buff_5.bmp", m_akGameIconMidInfo);
+	// 添加BUFF图标
+	AddGameIconInfo(BUFF_DING, "buff_1.bmp", m_akGameIconMidBottomInfo);
+	AddGameIconInfo(BUFF_SHUNPI, "buff_2.bmp", m_akGameIconMidBottomInfo);
+	AddGameIconInfo(BUFF_SELF_POWERBAR, "buff_3.bmp", m_akGameIconMidBottomInfo);
+	AddGameIconInfo(BUFF_PET_HP, "buff_4.bmp", m_akGameIconMidBottomInfo);
+	AddGameIconInfo(BUFF_ENEMY_COUNT, "buff_5.bmp", m_akGameIconMidBottomInfo);
+	AddGameIconInfo(BUFF_ENEMY_HP, "buff_6.bmp", m_akGameIconMidBottomInfo);
 
-	// 添加右上角血条图标
-	AddGameIconInfo(BUFF_POWERBAR, "buff_3.bmp", m_akGameIconLeftTopInfo);
+	//// 添加中间BUFF图标
+	//AddGameIconInfo(BUFF_DING1_1, "buff_1.bmp", m_akGameIconMidInfo);
+	//AddGameIconInfo(BUFF_DING, "buff_2.bmp", m_akGameIconMidInfo);
+	//AddGameIconInfo(BUFF_SHUNPI_ONE_SECOND, "buff_4.bmp", m_akGameIconMidInfo);
+	//AddGameIconInfo(BUFF_SHUNPI, "buff_5.bmp", m_akGameIconMidInfo);
+	//AddGameIconInfo(BUFF_DING_SKILL_1, "buff_6.bmp", m_akGameIconMidInfo);
+	//AddGameIconInfo(BUFF_DING_SKILL_2, "buff_7.bmp", m_akGameIconMidInfo);
+
+	//// 添加右上角血条图标
+	//AddGameIconInfo(BUFF_POWERBAR, "buff_3.bmp", m_akGameIconLeftTopInfo);
 
 	return true;
 }
 
 void WowPlugin::GameLoop()
 {
+	if (m_iTargetHandle == 0)
+	{
+		m_iTargetHandle = FindWindowA(NULL, "魔兽世界");
+	}
 	ProcessInput();
 
 	// 100是检测模式
@@ -85,24 +109,24 @@ void WowPlugin::GameLoop()
 					bAllPass = false;
 				}
 			}
-			itr = m_akGameIconLeftTopInfo.begin();
-			for (; itr != m_akGameIconLeftTopInfo.end(); itr++)
-			{
-				GameIconInfo& kGameIconInfo = itr->second;
-				if (kGameIconInfo.iComPareBeginX < 0 || kGameIconInfo.iComPareBeginY < 0)
-				{
-					bAllPass = false;
-				}
-			}
-			itr = m_akGameIconMidInfo.begin();
-			for (; itr != m_akGameIconMidInfo.end(); itr++)
-			{
-				GameIconInfo& kGameIconInfo = itr->second;
-				if (kGameIconInfo.iComPareBeginX < 0 || kGameIconInfo.iComPareBeginY < 0)
-				{
-					bAllPass = false;
-				}
-			}
+			//itr = m_akGameIconLeftTopInfo.begin();
+			//for (; itr != m_akGameIconLeftTopInfo.end(); itr++)
+			//{
+			//	GameIconInfo& kGameIconInfo = itr->second;
+			//	if (kGameIconInfo.iComPareBeginX < 0 || kGameIconInfo.iComPareBeginY < 0)
+			//	{
+			//		bAllPass = false;
+			//	}
+			//}
+			//itr = m_akGameIconMidInfo.begin();
+			//for (; itr != m_akGameIconMidInfo.end(); itr++)
+			//{
+			//	GameIconInfo& kGameIconInfo = itr->second;
+			//	if (kGameIconInfo.iComPareBeginX < 0 || kGameIconInfo.iComPareBeginY < 0)
+			//	{
+			//		bAllPass = false;
+			//	}
+			//}
 
 			// 所有的都通过，写入文件
 			if (bAllPass)
@@ -126,8 +150,23 @@ void WowPlugin::GameLoop()
 			RefrashIconInfoFast();
 			iLastTimePlay = 0;
 		}
-		
-		if (timeGetTime() - iLastTimePlay > 200)
+
+		for (int i = 0; i < m_aiMessage.size(); ++i)
+		{
+			if (timeGetTime() >= m_aiMessageUpTime[i])
+			{
+				SendMessage(m_iTargetHandle, WM_KEYUP, m_aiMessage[i], 0);
+				char str[100];
+				sprintf(str, "%d\n", timeGetTime() - m_aiMessangeDownTime[i]);
+				OutputDebugStringA(str);
+				m_aiMessage.erase(m_aiMessage.begin() + i);
+				m_aiMessageUpTime.erase(m_aiMessageUpTime.begin() + i);
+				m_aiMessangeDownTime.erase(m_aiMessangeDownTime.begin() + i);
+				i--;
+			}
+		}
+
+		if (timeGetTime() - iLastTimePlay > 100)
 		{
 			iLastTimePlay = timeGetTime();
 			PlayGame();
@@ -136,8 +175,33 @@ void WowPlugin::GameLoop()
 	}
 }
 
+void WowPlugin::AddMessage(int iMessage, char* acDebugStr)
+{
+	SendMessage(m_iTargetHandle, WM_KEYDOWN, iMessage, 0);
+
+	int iRandTime = rand() % 20 + 20;
+	m_aiMessageUpTime.push_back(timeGetTime() + iRandTime);
+	m_aiMessage.push_back(iMessage);
+	m_aiMessangeDownTime.push_back(timeGetTime());
+
+	char str[100];
+	if (acDebugStr != nullptr)
+	{
+		sprintf(str, "%s: %d\n", acDebugStr, iRandTime);
+		OutputDebugStringA(str);
+	}
+}
+
 void WowPlugin::PlayGame()
 {
+	if (m_bIsAltStopAttack)
+	{
+		if (timeGetTime() - m_iLastAltTime < 1000)
+		{
+			return;
+		}
+	}
+
 	static int iLastTime = timeGetTime();
 	int iDifTime = timeGetTime() - iLastTime;
 	iLastTime = timeGetTime();
@@ -145,108 +209,148 @@ void WowPlugin::PlayGame()
 	sprintf(str, "PlayGameDifTime:%d\n", iDifTime);
 	OutputDebugStringA(str);
 
-	GameIconInfo& kBuffDingOneSecond = m_akGameIconMidInfo[BUFF_DING1_1];
-	GameIconInfo& kBuffDing = m_akGameIconMidInfo[BUFF_DING];
-	GameIconInfo& kBuffPowerBar = m_akGameIconLeftTopInfo[BUFF_POWERBAR];
-	GameIconInfo& kBuffShunPiOneSecond = m_akGameIconMidInfo[BUFF_SHUNPI_ONE_SECOND];
-	GameIconInfo& kBuffShunPi = m_akGameIconMidInfo[BUFF_SHUNPI];
+	GameIconInfo& kBuffDing = m_akGameIconMidBottomInfo[BUFF_DING];
+	GameIconInfo& kDing_Skill_1 = m_akGameIconMidBottomInfo[SKILL_DING_1];
+	GameIconInfo& kDing_Skill_2 = m_akGameIconMidBottomInfo[SKILL_DING];
+	GameIconInfo& kBuffSelfPower = m_akGameIconMidBottomInfo[BUFF_SELF_POWERBAR];
+	GameIconInfo& kBuffShunPi = m_akGameIconMidBottomInfo[BUFF_SHUNPI];
+	GameIconInfo& kBuffPetHP = m_akGameIconMidBottomInfo[BUFF_PET_HP];
+	GameIconInfo& kEnemyCount = m_akGameIconMidBottomInfo[BUFF_ENEMY_COUNT];
+	GameIconInfo& kEnemyHP = m_akGameIconMidBottomInfo[BUFF_ENEMY_HP];
 
+
+	// 宠物治疗
+	if (m_bIsCurePet)
+	{
+		GameIconInfo& kSkillCurePet = m_akGameIconMidBottomInfo[SKILL_CURE_PET];
+		if (kSkillCurePet.fComPareRate > 0.9f && kBuffPetHP.fComPareRate < 0.8f)
+		{
+			AddMessage(VK_NUMPAD0, "SKILL_CURE_PET");
+			return;
+		}
+	}
 
 	// 当钉刺BUFF只剩一秒，或者钉刺BUFF没有的状态下，使用钉刺射击
-	if (kBuffDingOneSecond.fComPareRate > 0.9f || kBuffDingOneSecond.fComPareRate < 0.1f && kBuffDing.fComPareRate < 0.1f)
+	if (kDing_Skill_2.fComPareRate > 0.9f || kBuffDing.fComPareRate < 0.7f && (kDing_Skill_1.fComPareRate > 0.9f || kDing_Skill_2.fComPareRate > 0.9f))
 	{
-		m_aiMessage.push_back(VK_NUMPAD7);
-		OutputDebugStringA("kSkillF\n");
+		AddMessage(VK_NUMPAD7, "SKILL_DING ");
+		return;
 	}
+
+	// 三个目标以上需要全程保持顺劈
+	if (kEnemyCount.fComPareRate > 0.7f)
+	{
+		GameIconInfo& kSkillT = m_akGameIconMidBottomInfo[SKILL_DUOCHONG];
+		if (kSkillT.fComPareRate > 0.9f && kBuffShunPi.fComPareRate < 0.7f && kBuffSelfPower.fComPareRate > 0.5f)
+		{
+			AddMessage(VK_NUMPAD8, "SKILL_DUOCHONG ");
+			return;
+		}
+	}
+
+	if (kEnemyCount.fComPareRate > 0.3f)
+	{
+		// 奇美拉射击，好了就用
+		GameIconInfo& kSkillR = m_akGameIconMidBottomInfo[SKILL_QIMEILA];
+		if (kSkillR.fComPareRate > 0.9f && kBuffSelfPower.fComPareRate < 0.88f)
+		{
+			AddMessage(VK_NUMPAD6, "SKILL_QIMEILA ");
+			return;
+		}
+
+		// 杀戮指令,好了就用
+		GameIconInfo& kSkill4 = m_akGameIconMidBottomInfo[SKILL_SHALU];
+		if (kSkill4.fComPareRate > 0.9f)
+		{
+			AddMessage(VK_NUMPAD4, "SKILL_SHALU ");
+			return;
+		}
+	}
+	else
+	{
+		// 杀戮指令,好了就用
+		GameIconInfo& kSkill4 = m_akGameIconMidBottomInfo[SKILL_SHALU];
+		if (kSkill4.fComPareRate > 0.9f)
+		{
+			AddMessage(VK_NUMPAD4, "SKILL_SHALU ");
+			return;
+		}
+
+		// 奇美拉射击，好了就用
+		GameIconInfo& kSkillR = m_akGameIconMidBottomInfo[SKILL_QIMEILA];
+		if (kSkillR.fComPareRate > 0.9f && kBuffSelfPower.fComPareRate < 0.88f)
+		{
+			AddMessage(VK_NUMPAD6, "SKILL_QIMEILA ");
+			return;
+		}
+	}
+	
 
 	// 夺命黑鸦，好了就用
-	GameIconInfo& kSkill1 = m_akGameIconMidBottomInfo[SKILL_1];
+	GameIconInfo& kSkill1 = m_akGameIconMidBottomInfo[SKILL_WUYA];
 	if (kSkill1.fComPareRate > 0.9f)
 	{
-		m_aiMessage.push_back(VK_NUMPAD1);
-		OutputDebugStringA("kSkill1\n");
-	}
-
-	// 野性守护，好了就用 加暴击回集中值
-	GameIconInfo& kSkill2 = m_akGameIconMidBottomInfo[SKILL_2];
-	if (kSkill2.fComPareRate > 0.9f)
-	{
-		m_aiMessage.push_back(VK_NUMPAD2);
-		OutputDebugStringA("kSkill2\n");
+		AddMessage(VK_NUMPAD1, "SKILL_WUYA ");
+		return;
 	}
 
 	// 狂野怒火，好了就用
-	GameIconInfo& kSkill3 = m_akGameIconMidBottomInfo[SKILL_3];
-	if (kSkill3.fComPareRate > 0.9f)
+	GameIconInfo& kSkill3 = m_akGameIconMidBottomInfo[SKILL_HONGREN];
+	if (kSkill3.fComPareRate > 0.9f && kEnemyHP.fComPareRate > 0.9f)
 	{
-		m_aiMessage.push_back(VK_NUMPAD3);
-		OutputDebugStringA("kSkill3\n");
+		AddMessage(VK_NUMPAD3, "SKILL_HONGREN ");
+		return;
 	}
 
-	// 杀戮指令,好了就用
-	GameIconInfo& kSkill4 = m_akGameIconMidBottomInfo[SKILL_4];
-	if (kSkill4.fComPareRate > 0.9f)
+	// 野性守护，好了就用 加暴击回集中值
+	GameIconInfo& kSkill2 = m_akGameIconMidBottomInfo[SKILL_LVYE];
+	if (kSkill2.fComPareRate > 0.9f && kEnemyHP.fComPareRate > 0.9f)
 	{
-		m_aiMessage.push_back(VK_NUMPAD4);
-		OutputDebugStringA("kSkill4\n");
+		AddMessage(VK_NUMPAD2, "SKILL_LVYE ");
+		return;
 	}
+	
 
 	// 多目标状态状态 没有顺劈BUFF，或者顺劈BUFF小于1秒 就使用多重射击
-	if (m_iStartPlayGame == 2)
+	if (kEnemyCount.fComPareRate >= 0.3f)
 	{
-		GameIconInfo& kSkillT = m_akGameIconMidBottomInfo[SKILL_T];
-		if (kSkillT.fComPareRate > 0.9f && (kBuffShunPi.fComPareRate < 0.1f || kBuffDingOneSecond.fComPareRate > 0.9f))
+		GameIconInfo& kSkillT = m_akGameIconMidBottomInfo[SKILL_DUOCHONG];
+		if (kSkillT.fComPareRate > 0.9f && kBuffShunPi.fComPareRate < 0.7f && kBuffSelfPower.fComPareRate > 0.5f)
 		{
-			m_aiMessage.push_back(VK_NUMPAD8);
-			OutputDebugStringA("kSkillT\n");
+			AddMessage(VK_NUMPAD8, "SKILL_DUOCHONG ");
+			return;
 		}
 
 		// 弹幕射击，好了就用
-		GameIconInfo& kSkillG = m_akGameIconMidBottomInfo[SKILL_G];
+		GameIconInfo& kSkillG = m_akGameIconMidBottomInfo[SKILL_DANMU];
 		if (kSkillG.fComPareRate > 0.9f)
 		{
-			m_aiMessage.push_back(VK_NUMPAD9);
-			OutputDebugStringA("kSkillG\n");
+			AddMessage(VK_NUMPAD9, "SKILL_DANMU ");
+			return;
 		}
 	}
 
-
-	// 奇美拉射击，好了就用
-	GameIconInfo& kSkillR = m_akGameIconMidBottomInfo[SKILL_R];
-	if (kSkillR.fComPareRate > 0.9f)
-	{
-		m_aiMessage.push_back(VK_NUMPAD6);
-		OutputDebugStringA("kSkillR\n");
-	}
-
-	if (m_iStartPlayGame == 1)
+	if (kEnemyCount.fComPareRate < 0.3f)
 	{
 		// 单目标 眼镜蛇射击， 集中值溢出，同时杀戮指令进入冷却
-		GameIconInfo& kSkill5 = m_akGameIconMidBottomInfo[SKILL_5];
-		if (kSkill5.fComPareRate > 0.9f && kBuffPowerBar.fComPareRate > 0.65f && kSkill4.fComPareRate < 0.9)
+		GameIconInfo& kSkill4 = m_akGameIconMidBottomInfo[SKILL_SHALU];
+		GameIconInfo& kSkill5 = m_akGameIconMidBottomInfo[SKILL_YANJING];
+		if (kSkill5.fComPareRate > 0.9f && kBuffSelfPower.fComPareRate > 0.5f && kSkill4.fComPareRate < 0.5f)
 		{
-			m_aiMessage.push_back(VK_NUMPAD5);
-			OutputDebugStringA("kSkill5\n");
+			AddMessage(VK_NUMPAD5, "SKILL_YANJING ");
+			return;
 		}
 	}
-	else if (m_iStartPlayGame == 2)
+	else
 	{
 		// 多目标 集中值溢出， 并且有顺劈BUFF 并且顺劈BUFF大于1秒
-		GameIconInfo& kSkill5 = m_akGameIconMidBottomInfo[SKILL_5];
-		if (kSkill5.fComPareRate > 0.9f && kBuffPowerBar.fComPareRate > 0.76f && kBuffShunPi.fComPareRate > 0.9f && kBuffShunPiOneSecond.fComPareRate < 0.1f)
+		GameIconInfo& kSkill5 = m_akGameIconMidBottomInfo[SKILL_YANJING];
+		if (kSkill5.fComPareRate > 0.9f && kBuffSelfPower.fComPareRate > 0.7f && kBuffShunPi.fComPareRate > 0.9f)
 		{
-			m_aiMessage.push_back(VK_NUMPAD5);
-			
-			OutputDebugStringA("kSkill5\n");
+			AddMessage(VK_NUMPAD5, "SKILL_YANJING ");
+			return;
 		}
 	}
-
-	for (int i = m_aiMessage.size() - 1; i >= 0; --i)
-	{
-		SendMessage(m_iTargetHandle, WM_KEYDOWN, m_aiMessage[i], 0);
-		SendMessage(m_iTargetHandle, WM_KEYUP, m_aiMessage[i], 0);
-	}
-	m_aiMessage.clear();
 }
 
 void WowPlugin::ProcessInput()
@@ -276,10 +380,28 @@ void WowPlugin::ProcessInput()
 		{
 			ReadConfig();
 		}
+		if (m_bIsAltStopAttack)
+		{
+			if (GetKeyState(VK_MENU) & 0x800)
+			{
+				m_iLastAltTime = timeGetTime();
+			}
+		}
+		
+		/*static int itime = 0;
 		if (GetKeyState('F') & 0x800)
 		{
-
+			itime = timeGetTime();
 		}
+		else if (itime != 0)
+		{
+			int t = timeGetTime();
+			int t1 = t - itime;
+			char str[100];
+			sprintf(str, "%d\n", t1);
+			OutputDebugStringA(str);
+			itime = 0;
+		}*/
 	}
 }
 
@@ -351,13 +473,12 @@ void WowPlugin::AddGameIconInfo(std::string kKey, std::string kFileName, std::ma
 	}
 }
 
-#define MID_RIGHT	1830,	1880,	335,	845
-#define LEFT_TOP	50,		280,	20,		150
-#define MID_MID		890,	1050,	705,	765
+#define MID_BOTTOM	5,		500,	915,	1080
+//#define LEFT_TOP	50,		280,	20,		150
+//#define MID_MID		5,		500,	915,	1080
 
 void WowPlugin::RefrashIconInfoFast()
 {
-	OutputDebugStringA("kSkillF\n");
 	HBITMAP hBitMapGameSnap = ScreenShotByWndPos(m_iTargetHandle);
 	if (hBitMapGameSnap != 0)
 	{
@@ -368,11 +489,11 @@ void WowPlugin::RefrashIconInfoFast()
 		SelectObject(hdcGameSnap, hBitMapGameSnap);
 
 		// 中右方技能区域
-		ComPareImageFast(MID_RIGHT, hdcGameSnap, m_akGameIconMidBottomInfo);
-		// 左上角血条区域
-		ComPareImageFast(LEFT_TOP, hdcGameSnap, m_akGameIconLeftTopInfo);
-		// 中间BUFF区域
-		ComPareImageFast(MID_MID, hdcGameSnap, m_akGameIconMidInfo);
+		ComPareImageFast(MID_BOTTOM, hdcGameSnap, m_akGameIconMidBottomInfo);
+		//// 左上角血条区域
+		//ComPareImageFast(LEFT_TOP, hdcGameSnap, m_akGameIconLeftTopInfo);
+		//// 中间BUFF区域
+		//ComPareImageFast(MID_MID, hdcGameSnap, m_akGameIconMidInfo);
 
 		//OutputDebugStringA("m_akGameIconMidBottomInfo\n");
 		//std::map<std::string, GameIconInfo>::iterator itr = m_akGameIconMidBottomInfo.begin();
@@ -422,11 +543,11 @@ void WowPlugin::RefrashIconInfoNormal()
 		SelectObject(hdcGameSnap, hBitMapGameSnap);
 
 		// 中右方技能区域
-		ComPareImageNormal(MID_RIGHT, hdcGameSnap, m_akGameIconMidBottomInfo);
-		// 左上角血条区域
-		ComPareImageNormal(LEFT_TOP, hdcGameSnap, m_akGameIconLeftTopInfo);
-		// 中间BUFF区域
-		ComPareImageNormal(MID_MID, hdcGameSnap, m_akGameIconMidInfo);
+		ComPareImageNormal(MID_BOTTOM, hdcGameSnap, m_akGameIconMidBottomInfo);
+		//// 左上角血条区域
+		//ComPareImageNormal(LEFT_TOP, hdcGameSnap, m_akGameIconLeftTopInfo);
+		//// 中间BUFF区域
+		//ComPareImageNormal(MID_MID, hdcGameSnap, m_akGameIconMidInfo);
 
 		::DeleteDC(hdcGameSnap);
 		::DeleteObject(hBitMapGameSnap);
@@ -558,18 +679,18 @@ void WowPlugin::ReadConfig()
 				itr->second.iComPareBeginX = iBeginX;
 				itr->second.iComPareBeginY = iBeginY;
 			}
-			itr = m_akGameIconLeftTopInfo.find(kName);
-			if (itr != m_akGameIconLeftTopInfo.end())
-			{
-				itr->second.iComPareBeginX = iBeginX;
-				itr->second.iComPareBeginY = iBeginY;
-			}
-			itr = m_akGameIconMidInfo.find(kName);
-			if (itr != m_akGameIconMidInfo.end())
-			{
-				itr->second.iComPareBeginX = iBeginX;
-				itr->second.iComPareBeginY = iBeginY;
-			}
+			//itr = m_akGameIconLeftTopInfo.find(kName);
+			//if (itr != m_akGameIconLeftTopInfo.end())
+			//{
+			//	itr->second.iComPareBeginX = iBeginX;
+			//	itr->second.iComPareBeginY = iBeginY;
+			//}
+			//itr = m_akGameIconMidInfo.find(kName);
+			//if (itr != m_akGameIconMidInfo.end())
+			//{
+			//	itr->second.iComPareBeginX = iBeginX;
+			//	itr->second.iComPareBeginY = iBeginY;
+			//}
 		}
 	}
 	fclose(pkFile);
@@ -594,7 +715,7 @@ void WowPlugin::SaveConfig()
 			fputs(str, pkFile);
 			fputs("\n", pkFile);
 		}
-		itr = m_akGameIconLeftTopInfo.begin();
+		/*itr = m_akGameIconLeftTopInfo.begin();
 		for (; itr != m_akGameIconLeftTopInfo.end(); itr++)
 		{
 			GameIconInfo& kGameIconInfo = itr->second;
@@ -621,7 +742,7 @@ void WowPlugin::SaveConfig()
 			itoa(kGameIconInfo.iComPareBeginY, str, 10);
 			fputs(str, pkFile);
 			fputs("\n", pkFile);
-		}
+		}*/
 	}
 	fclose(pkFile);
 }
