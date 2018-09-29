@@ -9,6 +9,8 @@ HINSTANCE			g_hInstance = 0;
 
 HWND g_hButtonCurrPut = 0;
 HWND g_hButtonAltStopAttack = 0;
+HWND g_hButtonAutoFish = 0;
+
 void CreateControl(HWND hWnd)
 {
 	g_hButtonCurrPut = (HWND)CreateWindow(TEXT("Button"),  //Button是预定义 窗体类
@@ -26,6 +28,15 @@ void CreateControl(HWND hWnd)
 		10, 85, 160, 35,
 		hWnd,
 		(HMENU)521,  //(重点)这里设置按钮id,但是 原本是设置菜单的 所以需要HMENU
+		g_hInstance,
+		NULL);
+
+	g_hButtonAutoFish = (HWND)CreateWindow(TEXT("Button"),  //Button是预定义 窗体类
+		TEXT("自动钓鱼"),
+		WS_VISIBLE | WS_CHILD | BS_CHECKBOX,
+		10, 125, 160, 35,
+		hWnd,
+		(HMENU)522,  //(重点)这里设置按钮id,但是 原本是设置菜单的 所以需要HMENU
 		g_hInstance,
 		NULL);
 }
@@ -56,6 +67,19 @@ void ProcessControl(HWND hWnd, DWORD wParam)
 		{
 			SendMessage(g_hButtonAltStopAttack, BM_SETCHECK, BST_CHECKED, 0);
 			g_kWowPlugin.SetIsAltStopAttack(true);
+		}
+	}
+	else if (LOWORD(wParam) == 522 && HIWORD(wParam) == BN_CLICKED)
+	{
+		if (SendMessage(g_hButtonAutoFish, BM_GETCHECK, 0, 0) == BST_CHECKED)
+		{
+			SendMessage(g_hButtonAutoFish, BM_SETCHECK, BST_UNCHECKED, 0);
+			g_kWowPlugin.SetIsAutoFish(false);
+		}
+		else
+		{
+			SendMessage(g_hButtonAutoFish, BM_SETCHECK, BST_CHECKED, 0);
+			g_kWowPlugin.SetIsAutoFish(true);
 		}
 	}
 }

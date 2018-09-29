@@ -9,6 +9,16 @@
 #include <string>
 using namespace Gdiplus;
 
+enum AutoFishStep
+{
+	AutoFishStep_Start = 0,
+	AutoFishStep_Glint,
+	AutoFishStep_FindFish,
+	AutoFishStep_WaitFish,
+	AutoFishStep_GetFish,
+	AutoFishStep_Count,
+};
+
 struct GameIconInfo
 {
 	GameIconInfo()
@@ -38,6 +48,32 @@ struct GameIconInfo
 	DWORD* aiPixelGameIcon;
 };
 
+struct WowMessange
+{
+	WowMessange()
+	{
+		iType = 0;
+		iMssange1 = 0;
+		iMessage2 = 0;
+		iDownTime = 0;
+		iUpTime = 0;
+	}
+
+	WowMessange(int _iType, unsigned int _iMssange1, unsigned int _iMessage2, int _iDownTime, int _iUpTime)
+	{
+		iType = _iType;
+		iMssange1 = _iMssange1;
+		iMessage2 = _iMessage2;
+		iDownTime = _iDownTime;
+		iUpTime = _iUpTime;
+	}
+	unsigned int iType;
+	unsigned int iMssange1;
+	unsigned int iMessage2;
+	int iDownTime;
+	int iUpTime;
+};
+
 class WowPlugin
 {
 public:
@@ -49,30 +85,46 @@ public:
 
 	void SetIsCurePet(bool bValue) { m_bIsCurePet = bValue; }
 	void SetIsAltStopAttack(bool bValue) { m_bIsAltStopAttack = bValue; }
+	void SetIsAutoFish(bool bValue) { m_bAutoFish = bValue; }
+
 protected:
 	void ProcessInput();
 	void PlayGame();
-	void AddMessage(int iMessage, char* acDebugStr = nullptr);
+	void AutoFish();
+	void MouseMove();
+	void AddMouseMove(int iPosX, int iPosY);
+	void SendKeyUP();
+	void AddMessage(unsigned int iType, int iMessage, int iMessageEx, char* acDebugStr);
 	HBITMAP ScreenShotByWndPos(HWND hWnd);
 	void AddGameIconInfo(std::string kKey, std::string kFileName, std::map<std::string, GameIconInfo>& akGameIconInfo);
 	void RefrashIconInfoFast();
 	void RefrashIconInfoNormal();
+	void RefrashFishIcon();
 	bool ComPareImageFast(int iBeginX, int iEndX, int iBeginY, int iEndY, HDC hdcGameSnap, std::map<std::string, GameIconInfo>& akGameIconInfo);
 	void ComPareImageNormal(int iBeginX, int iEndX, int iBeginY, int iEndY, HDC hdcGameSnap, std::map<std::string, GameIconInfo>& akGameIconInfo);
+	void ComPareImageNormalFuzzy(int iBeginX, int iEndX, int iBeginY, int iEndY, HDC hdcGameSnap, std::map<std::string, GameIconInfo>& akGameIconInfo);
 	void ReadConfig();
 	void SaveConfig();
 
 private:
 	HWND m_iTargetHandle;
 	std::map<std::string, GameIconInfo> m_akGameIconMidBottomInfo;
+	std::map<std::string, GameIconInfo> m_kGameIconMidFish;
+	std::map<std::string, GameIconInfo> m_kGameIconMidFishCursor;
 	//std::map<std::string, GameIconInfo> m_akGameIconLeftTopInfo;
 	//std::map<std::string, GameIconInfo> m_akGameIconMidInfo;
 	DWORD m_aiPoolGameSnap[2000][2000];
 	int m_iStartPlayGame;
-	std::vector<int> m_aiMessage;
-	std::vector<int> m_aiMessageUpTime;
-	std::vector<int> m_aiMessangeDownTime;
+	std::vector<WowMessange> m_akMessage;
 	bool m_bIsCurePet;
 	bool m_bIsAltStopAttack;
+	bool m_bAutoFish;
 	int m_iLastAltTime;
+	AutoFishStep m_eAutoFishStep;
+	int m_iAutoFishStepStartTime;
+	int m_iMouseTargetPosX;
+	int m_iMouseTargetPosY;
+	int m_iMouseSrcPosX;
+	int m_iMouseSrcPosY;
+	int m_iStartMouseMoveTime;
 };
