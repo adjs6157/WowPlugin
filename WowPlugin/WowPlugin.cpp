@@ -18,6 +18,7 @@
 #define BUFF_PET_HP "宠物生命值"
 #define BUFF_ENEMY_COUNT "敌人个数"
 #define BUFF_ENEMY_HP "敌人总血量"
+#define BUFF_DING_OUT "钉刺BUFF断档"
 
 #define FISH_ICON "钓鱼鱼漂"
 #define FISH_CURSOR "钓鱼鼠标"
@@ -38,6 +39,7 @@ WowPlugin::WowPlugin()
 	m_eAutoFishStep = AutoFishStep_Count;
 	m_iAutoFishStepStartTime = 0;
 	m_iStartMouseMoveTime = -1;
+	m_iFishFuzzySumX = m_iFishFuzzySumY = m_iFishFuzzySumCount = 0;
 }
 
 WowPlugin::~WowPlugin()
@@ -63,7 +65,7 @@ bool WowPlugin::InitGame()
 	AddGameIconInfo(SKILL_DING, "skill_7.bmp", m_akGameIconMidBottomInfo);
 	AddGameIconInfo(SKILL_DING_1, "skill_7_1.bmp", m_akGameIconMidBottomInfo);
 	AddGameIconInfo(SKILL_DUOCHONG, "skill_8.bmp", m_akGameIconMidBottomInfo);
-	AddGameIconInfo(SKILL_DANMU, "skill_9.bmp", m_akGameIconMidBottomInfo);
+	//AddGameIconInfo(SKILL_DANMU, "skill_9.bmp", m_akGameIconMidBottomInfo);
 	AddGameIconInfo(SKILL_CURE_PET, "skill_10.bmp", m_akGameIconMidBottomInfo);
 
 	// 添加BUFF图标
@@ -73,6 +75,7 @@ bool WowPlugin::InitGame()
 	AddGameIconInfo(BUFF_PET_HP, "buff_4.bmp", m_akGameIconMidBottomInfo);
 	AddGameIconInfo(BUFF_ENEMY_COUNT, "buff_5.bmp", m_akGameIconMidBottomInfo);
 	AddGameIconInfo(BUFF_ENEMY_HP, "buff_6.bmp", m_akGameIconMidBottomInfo);
+	AddGameIconInfo(BUFF_DING_OUT, "buff_7.bmp", m_akGameIconMidBottomInfo);
 
 	//// 添加中间BUFF图标
 	//AddGameIconInfo(BUFF_DING1_1, "buff_1.bmp", m_akGameIconMidInfo);
@@ -103,6 +106,42 @@ void WowPlugin::GameLoop()
 
 	MouseMove();
 
+	//CURSORINFO hCursor;
+	//ZeroMemory(&hCursor, sizeof(hCursor));
+	//hCursor.cbSize = sizeof(hCursor);
+	//if (GetCursorInfo(&hCursor))
+	//{
+	//	ICONINFO iconInfo;
+	//	if (GetIconInfo(hCursor.hCursor, &iconInfo))
+	//	{
+	//		char str[100];
+	//		sprintf(str, "hcursor: %d, %d, %d, %d, %d\n", iconInfo.fIcon, iconInfo.hbmColor, iconInfo.hbmMask, iconInfo.xHotspot, iconInfo.yHotspot);
+	//		//OutputDebugStringA(str);
+
+	//		OutputDebugStringA("hcursor:");
+	//		if (iconInfo.hbmColor != 0)
+	//		{
+	//			HDC hdcIcon = CreateCompatibleDC(NULL);
+	//			BITMAP  bitMapIcon;
+	//			GetObject(iconInfo.hbmColor, sizeof(BITMAP), &bitMapIcon);
+	//			SelectObject(hdcIcon, iconInfo.hbmColor);
+
+	//			for (int i = 0; i < bitMapIcon.bmWidth; ++i)
+	//			{
+	//				for (int j = 0; j < bitMapIcon.bmHeight; ++j)
+	//				{
+	//					char str[100];
+	//					sprintf(str, "%d ", GetPixel(hdcIcon, i, j));
+	//					OutputDebugStringA(str);
+	//				}
+	//				OutputDebugStringA("\n");
+	//			}
+	//			DeleteDC(hdcIcon);
+	//		}
+	//		OutputDebugStringA("\n");
+	//	}
+	//}
+
 	// 自动钓鱼
 	if (m_bAutoFish)
 	{
@@ -110,7 +149,6 @@ void WowPlugin::GameLoop()
 		if (timeGetTime() - iLastTimeRefrashFish > 200)
 		{
 			iLastTimeRefrashFish = timeGetTime();
-			RefrashFishIcon();
 			AutoFish();
 			return;
 		}
@@ -284,6 +322,7 @@ void WowPlugin::PlayGame()
 	OutputDebugStringA(str);
 
 	GameIconInfo& kBuffDing = m_akGameIconMidBottomInfo[BUFF_DING];
+	GameIconInfo& kBuffDingOut = m_akGameIconMidBottomInfo[BUFF_DING_OUT];
 	GameIconInfo& kDing_Skill_1 = m_akGameIconMidBottomInfo[SKILL_DING_1];
 	GameIconInfo& kDing_Skill_2 = m_akGameIconMidBottomInfo[SKILL_DING];
 	GameIconInfo& kBuffSelfPower = m_akGameIconMidBottomInfo[BUFF_SELF_POWERBAR];
@@ -291,6 +330,7 @@ void WowPlugin::PlayGame()
 	GameIconInfo& kBuffPetHP = m_akGameIconMidBottomInfo[BUFF_PET_HP];
 	GameIconInfo& kEnemyCount = m_akGameIconMidBottomInfo[BUFF_ENEMY_COUNT];
 	GameIconInfo& kEnemyHP = m_akGameIconMidBottomInfo[BUFF_ENEMY_HP];
+	GameIconInfo& kSkill5 = m_akGameIconMidBottomInfo[SKILL_YANJING];
 
 	if (kEnemyCount.fComPareRate <= 0.1f) return;
 
@@ -306,11 +346,15 @@ void WowPlugin::PlayGame()
 		}
 	}
 
-	// 当钉刺BUFF只剩一秒，或者钉刺BUFF没有的状态下，使用钉刺射击
-	if (/*kDing_Skill_2.fComPareRate > 0.9f || */kBuffDing.fComPareRate < 0.7f && (kDing_Skill_1.fComPareRate > 0.9f || kDing_Skill_2.fComPareRate > 0.9f))
+	// 钉刺断档了就等两层在继续用
+	if (kBuffDingOut.fComPareRate < 0.7f && kDing_Skill_2.fComPareRate > 0.9f || kBuffDingOut.fComPareRate > 0.9f)
 	{
-		AddMessage(WM_KEYDOWN, VK_NUMPAD7, 0, "SKILL_DING ");
-		return;
+		// 当钉刺BUFF只剩一秒，或者钉刺BUFF没有的状态下，使用钉刺射击, 钉刺射击不好检测CD所以用眼镜蛇射击的功用CD代替
+		if (kSkill5.fComPareRate > 0.9f && kBuffDing.fComPareRate < 0.7f && (kDing_Skill_1.fComPareRate > 0.9f || kDing_Skill_2.fComPareRate > 0.9f))
+		{
+			AddMessage(WM_KEYDOWN, VK_NUMPAD7, 0, "SKILL_DING ");
+			return;
+		}
 	}
 
 	// 三个目标以上需要全程保持顺劈
@@ -416,12 +460,12 @@ void WowPlugin::PlayGame()
 		}
 
 		// 弹幕射击，好了就用
-		GameIconInfo& kSkillG = m_akGameIconMidBottomInfo[SKILL_DANMU];
+		/*GameIconInfo& kSkillG = m_akGameIconMidBottomInfo[SKILL_DANMU];
 		if (kSkillG.fComPareRate > 0.9f)
 		{
 			AddMessage(WM_KEYDOWN, VK_NUMPAD9, 0, "SKILL_DANMU ");
 			return;
-		}
+		}*/
 	}
 
 	if (kEnemyCount.fComPareRate < 0.3f)
@@ -455,11 +499,13 @@ void WowPlugin::AutoFish()
 	static int iLastFishPosX = -1;
 	static int iMaxFishPosY = -1;
 	static int iMinFishPosY = -1;
+	static bool bFindFishDif = false;
+
 	switch (m_eAutoFishStep)
 	{
 	case AutoFishStep_Start:
 	{
-							   if (timeGetTime() - m_iAutoFishStepStartTime > 3000)
+							   if (timeGetTime() - m_iAutoFishStepStartTime > 1500)
 							   {
 								   m_iAutoFishStepStartTime = timeGetTime();
 								   AddMessage(WM_KEYDOWN, VK_DELETE, 0, "AUTO_FISH");
@@ -471,6 +517,7 @@ void WowPlugin::AutoFish()
 
 								   iLastFishPosY = iLastFishPosX = -1;
 								   iMaxFishPosY = iMinFishPosY = -1;
+								   bFindFishDif = false;
 								   m_eAutoFishStep = AutoFishStep_Glint;
 								   AddMouseMove(960 + rand() % 800 - 400, 780 - rand() % 300);
 
@@ -482,61 +529,90 @@ void WowPlugin::AutoFish()
 		
 	case AutoFishStep_Glint:
 	{
-							   if (timeGetTime() - m_iAutoFishStepStartTime > 2000)
+							   if (timeGetTime() - m_iAutoFishStepStartTime > 100)
 							   {
 								   m_iAutoFishStepStartTime = timeGetTime();
-								   m_eAutoFishStep = AutoFishStep_WaitFish;
+								   m_eAutoFishStep = AutoFishStep_FindFish;
 								   //OutputDebugStringA("AutoFishStep_Glint");
 							   }
 							   break;
 	}
 	case AutoFishStep_FindFish:
 	{
-
-								  break;
-	}
-	case AutoFishStep_WaitFish:
-	{
-								  if (timeGetTime() - m_iAutoFishStepStartTime > 18000)
+								  if (timeGetTime() - m_iAutoFishStepStartTime > 16000)
 								  {
 									  m_eAutoFishStep = AutoFishStep_Start;
 									  m_iAutoFishStepStartTime = timeGetTime();
 								  }
 								  else
 								  {
-									  GameIconInfo& kFish = m_kGameIconMidFish[FISH_ICON];
-									  if (kFish.fComPareRate > 0)
+										RefrashFishIcon();
+										GameIconInfo& kFish = m_kGameIconMidFish[FISH_ICON];
+										if (kFish.fComPareRate > 0)
+										{
+											iLastFishPosY = kFish.iComPareBeginY;
+											iLastFishPosX = kFish.iComPareBeginX;
+											AddMouseMove(iLastFishPosX, iLastFishPosY - 32);
+											m_iAutoFishStepStartTime = timeGetTime();
+											m_eAutoFishStep = AutoFishStep_WaitFish;
+
+											char str[100];
+											sprintf(str, "fishPosX: %d, fishPosY: %d, %d\n", kFish.iComPareBeginX, kFish.iComPareBeginY, timeGetTime());
+											OutputDebugStringA(str);
+										}
+								  }
+
+								  
+								  break;
+	}
+	case AutoFishStep_WaitFish:
+	{
+								  if (timeGetTime() - m_iAutoFishStepStartTime > 16000)
+								  {
+									  m_eAutoFishStep = AutoFishStep_Start;
+									  m_iAutoFishStepStartTime = timeGetTime();
+								  }
+								  else if (timeGetTime() - m_iAutoFishStepStartTime > 700)
+								  {
+									  CURSORINFO hCursor;
+									  ZeroMemory(&hCursor, sizeof(hCursor));
+									  hCursor.cbSize = sizeof(hCursor);
+									  if (GetCursorInfo(&hCursor))
 									  {
-										  char str[100];
-										  sprintf(str, "fishPosX: %d, fishPosY: %d, difY: %d, %d\n", kFish.iComPareBeginX, kFish.iComPareBeginY, abs(kFish.iComPareBeginY - iLastFishPosY), timeGetTime());
-										  OutputDebugStringA(str);
+									  	ICONINFO iconInfo;
+									  	if (GetIconInfo(hCursor.hCursor, &iconInfo))
+									  	{
+									  		if (iconInfo.hbmColor != 0)
+									  		{
+									  			HDC hdcIcon = CreateCompatibleDC(NULL);
+									  			BITMAP  bitMapIcon;
+									  			GetObject(iconInfo.hbmColor, sizeof(BITMAP), &bitMapIcon);
+									  			SelectObject(hdcIcon, iconInfo.hbmColor);
 
-										  if (iMaxFishPosY == -1)
-										  {
-											  iMaxFishPosY = kFish.iComPareBeginY;
-											  iMinFishPosY = kFish.iComPareBeginY;
-										  }
-										  else
-										  {
-											  if (iMaxFishPosY < kFish.iComPareBeginY)
-											  {
-												  iMaxFishPosY = kFish.iComPareBeginY;
-											  }
-											  if (iMinFishPosY > kFish.iComPareBeginY)
-											  {
-												  iMinFishPosY = kFish.iComPareBeginY;
-											  }
-										  }
-
-										  if (abs(kFish.iComPareBeginY - iLastFishPosY) > 8 /*|| abs(kFish.iComPareBeginX - iLastFishPosX) > 8*/ && iLastFishPosY != -1)
-										  {
-											  m_eAutoFishStep = AutoFishStep_GetFish;
-											  m_iAutoFishStepStartTime = timeGetTime();
-											  AddMouseMove(kFish.iComPareBeginX + 10, kFish.iComPareBeginY + 10);
-										  }
-										  
-										  iLastFishPosY = kFish.iComPareBeginY;
-										  iLastFishPosX = kFish.iComPareBeginX;
+												if (bFindFishDif)
+												{
+													if (GetPixel(hdcIcon, 1, 1) == 10262924)
+													{
+														m_eAutoFishStep = AutoFishStep_GetFish;
+														m_iAutoFishStepStartTime = timeGetTime();
+													}
+												}
+												else
+												{
+													if (GetPixel(hdcIcon, 1, 1) == 10262924)
+													{
+														SetCursorPos(hCursor.ptScreenPos.x, hCursor.ptScreenPos.y + 1);
+														bFindFishDif = true;
+													}
+													else if (GetPixel(hdcIcon, 1, 1) == 9620713)
+													{
+														SetCursorPos(hCursor.ptScreenPos.x, hCursor.ptScreenPos.y - 1);
+													}
+												}
+												
+									  			DeleteDC(hdcIcon);
+									  		}
+									  	}
 									  }
 								  }
 								  break;
@@ -544,16 +620,45 @@ void WowPlugin::AutoFish()
 		
 	case AutoFishStep_GetFish:
 	{
-								 if (timeGetTime() - m_iAutoFishStepStartTime > 700)
+								 if (timeGetTime() - m_iAutoFishStepStartTime > 10000)
 								 {
-									 POINT kPoint;
-									 if (GetCursorPos(&kPoint))
-									 {
-										 AddMessage(WM_LBUTTONDOWN, 0, MAKELONG(kPoint.x, kPoint.y), "GET_FISH");
-									 }
-									 
 									 m_eAutoFishStep = AutoFishStep_Start;
 									 m_iAutoFishStepStartTime = timeGetTime();
+								 }
+								 else if (timeGetTime() - m_iAutoFishStepStartTime > 100)
+								 {
+									 CURSORINFO hCursor;
+									 ZeroMemory(&hCursor, sizeof(hCursor));
+									 hCursor.cbSize = sizeof(hCursor);
+									 if (GetCursorInfo(&hCursor))
+									 {
+										 ICONINFO iconInfo;
+										 if (GetIconInfo(hCursor.hCursor, &iconInfo))
+										 {
+											 if (iconInfo.hbmColor != 0)
+											 {
+												 HDC hdcIcon = CreateCompatibleDC(NULL);
+												 BITMAP  bitMapIcon;
+												 GetObject(iconInfo.hbmColor, sizeof(BITMAP), &bitMapIcon);
+												 SelectObject(hdcIcon, iconInfo.hbmColor);
+
+												 if (GetPixel(hdcIcon, 1, 1) == 9620713)
+												 {
+													 POINT kPoint;
+													 if (GetCursorPos(&kPoint))
+													 {
+														 AddMessage(WM_LBUTTONDOWN, 0, MAKELONG(kPoint.x, kPoint.y), "GET_FISH");
+													 }
+
+													 m_eAutoFishStep = AutoFishStep_Start;
+													 m_iAutoFishStepStartTime = timeGetTime();
+												 }
+												 DeleteDC(hdcIcon);
+											 }
+										 }
+									 }
+
+									 
 								 }
 								 
 								 //OutputDebugStringA("AutoFishStep_GetFish");
@@ -695,7 +800,7 @@ void WowPlugin::AddGameIconInfo(std::string kKey, std::string kFileName, std::ma
 //#define LEFT_TOP	50,		280,	20,		150
 //#define MID_MID		5,		500,	915,	1080
 
-#define MID_FISH	680,	1240,	520,	890
+#define MID_FISH	680,	1240,	400,	890
 
 void WowPlugin::RefrashIconInfoFast()
 {
@@ -907,12 +1012,12 @@ void WowPlugin::ComPareImageNormalFuzzy(int iBeginX, int iEndX, int iBeginY, int
 		kGameIconInfo.fComPareRate = 0;
 
 		// 已经匹配上了就缩减范围
-		if (kGameIconInfo.iComPareBeginX > 0 && kGameIconInfo.iComPareBeginY > 0)
+		if (m_iFishFuzzySumX != 0)
 		{
-			iBeginX = kGameIconInfo.iComPareBeginX - 20;
-			iEndX = kGameIconInfo.iComPareBeginX + 20;
-			iBeginY = kGameIconInfo.iComPareBeginY - 20;
-			iEndY = kGameIconInfo.iComPareBeginY + 20;
+			iBeginX = m_iFishFuzzySumX * 1.0f / m_iFishFuzzySumCount - 200;
+			iEndX = m_iFishFuzzySumX * 1.0f / m_iFishFuzzySumCount + 200;
+			iBeginY = m_iFishFuzzySumY * 1.0f / m_iFishFuzzySumCount - 100;
+			iEndY = m_iFishFuzzySumY * 1.0f / m_iFishFuzzySumCount + 100;
 		}
 
 		// 填充像素
@@ -938,6 +1043,12 @@ void WowPlugin::ComPareImageNormalFuzzy(int iBeginX, int iEndX, int iBeginY, int
 							kGameIconInfo.fComPareRate = 2;
 							kGameIconInfo.iComPareBeginX = i;
 							kGameIconInfo.iComPareBeginY = j;
+							if (m_iFishFuzzySumCount < 20)
+							{
+								m_iFishFuzzySumX += kGameIconInfo.iComPareBeginX;
+								m_iFishFuzzySumY += kGameIconInfo.iComPareBeginY;
+								m_iFishFuzzySumCount++;
+							}
 							return;
 						}
 					}

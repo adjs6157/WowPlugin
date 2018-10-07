@@ -11,6 +11,9 @@ HWND g_hButtonCurrPut = 0;
 HWND g_hButtonAltStopAttack = 0;
 HWND g_hButtonAutoFish = 0;
 
+HWND g_hButtonOD = 0;
+
+int* iTest = 0;
 void CreateControl(HWND hWnd)
 {
 	g_hButtonCurrPut = (HWND)CreateWindow(TEXT("Button"),  //Button是预定义 窗体类
@@ -37,6 +40,18 @@ void CreateControl(HWND hWnd)
 		10, 125, 160, 35,
 		hWnd,
 		(HMENU)522,  //(重点)这里设置按钮id,但是 原本是设置菜单的 所以需要HMENU
+		g_hInstance,
+		NULL);
+
+	iTest = new int;
+	iTest = 0;
+
+	g_hButtonOD = (HWND)CreateWindow(TEXT("Button"),  //Button是预定义 窗体类
+		TEXT("0"),
+		WS_VISIBLE | WS_CHILD | BS_PUSHBUTTON,
+		10, 165, 160, 35,
+		hWnd,
+		(HMENU)523,  //(重点)这里设置按钮id,但是 原本是设置菜单的 所以需要HMENU
 		g_hInstance,
 		NULL);
 }
@@ -81,6 +96,15 @@ void ProcessControl(HWND hWnd, DWORD wParam)
 			SendMessage(g_hButtonAutoFish, BM_SETCHECK, BST_CHECKED, 0);
 			g_kWowPlugin.SetIsAutoFish(true);
 		}
+	}
+	else if (LOWORD(wParam) == 523 && HIWORD(wParam) == BN_CLICKED)
+	{
+		CHAR str[100];
+		GetWindowTextA(g_hButtonOD, str, 100);
+		int iTestNum = atoi(str);
+		iTestNum++;
+		itoa(iTestNum, str, 100);
+		SetWindowTextA(g_hButtonOD, str);
 	}
 }
 

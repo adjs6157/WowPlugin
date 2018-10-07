@@ -1,5 +1,5 @@
 #include <windows.h>
-#include <timeapi.h>
+//#include <timeapi.h>
 #include <wingdi.h>
 #include <Gdiplus.h>
 
@@ -85,7 +85,7 @@ public:
 
 	void SetIsCurePet(bool bValue) { m_bIsCurePet = bValue; }
 	void SetIsAltStopAttack(bool bValue) { m_bIsAltStopAttack = bValue; }
-	void SetIsAutoFish(bool bValue) { m_bAutoFish = bValue; }
+	void SetIsAutoFish(bool bValue) { m_bAutoFish = bValue; m_iFishFuzzySumX = m_iFishFuzzySumY = m_iFishFuzzySumCount = 0; }
 
 protected:
 	void ProcessInput();
@@ -127,4 +127,7 @@ private:
 	int m_iMouseSrcPosX;
 	int m_iMouseSrcPosY;
 	int m_iStartMouseMoveTime;
+	int m_iFishFuzzySumX;
+	int m_iFishFuzzySumY;
+	int m_iFishFuzzySumCount;
 };
