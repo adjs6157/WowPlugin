@@ -30,6 +30,7 @@ struct GameIconInfo
 		iPixelWidth = 0;
 		iPixelHeight = 0;
 		aiPixelGameIcon = NULL;
+		iMaxColor = iMinColor = 0;
 	}
 	~GameIconInfo()
 	{
@@ -46,6 +47,8 @@ struct GameIconInfo
 	int iPixelWidth;
 	int iPixelHeight;
 	DWORD* aiPixelGameIcon;
+	int iMaxColor;
+	int iMinColor;
 };
 
 struct WowMessange

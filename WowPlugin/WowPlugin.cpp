@@ -529,7 +529,7 @@ void WowPlugin::AutoFish()
 		
 	case AutoFishStep_Glint:
 	{
-							   if (timeGetTime() - m_iAutoFishStepStartTime > 100)
+							   if (timeGetTime() - m_iAutoFishStepStartTime > 1000)
 							   {
 								   m_iAutoFishStepStartTime = timeGetTime();
 								   m_eAutoFishStep = AutoFishStep_FindFish;
@@ -552,7 +552,7 @@ void WowPlugin::AutoFish()
 										{
 											iLastFishPosY = kFish.iComPareBeginY;
 											iLastFishPosX = kFish.iComPareBeginX;
-											AddMouseMove(iLastFishPosX, iLastFishPosY - 32);
+											AddMouseMove(iLastFishPosX + 10, iLastFishPosY - 32);
 											m_iAutoFishStepStartTime = timeGetTime();
 											m_eAutoFishStep = AutoFishStep_WaitFish;
 
@@ -778,13 +778,25 @@ void WowPlugin::AddGameIconInfo(std::string kKey, std::string kFileName, std::ma
 		kGameIconInfo.iPixelWidth = bitMapIcon.bmWidth;
 		kGameIconInfo.iPixelHeight = bitMapIcon.bmHeight;
 		kGameIconInfo.aiPixelGameIcon = new COLORREF[bitMapIcon.bmWidth * bitMapIcon.bmHeight];
+		int iMaxRed = 0, iMinRed = 255, iMaxGreen = 0, iMinGreen = 255, iMaxBlue = 0, iMinBlue = 255;
 		for (int i = 0; i < bitMapIcon.bmWidth; ++i)
 		{
 			for (int j = 0; j < bitMapIcon.bmHeight; ++j)
 			{
 				kGameIconInfo.aiPixelGameIcon[i * bitMapIcon.bmHeight + j] = GetPixel(hdcIcon, i, j);
+				int iRed = GetRValue(kGameIconInfo.aiPixelGameIcon[i * bitMapIcon.bmHeight + j]);
+				int iGreen = GetGValue(kGameIconInfo.aiPixelGameIcon[i * bitMapIcon.bmHeight + j]);
+				int iBlue = GetBValue(kGameIconInfo.aiPixelGameIcon[i * bitMapIcon.bmHeight + j]);
+				if (iMaxRed < iRed) iMaxRed = iRed;
+				if (iMinRed > iRed) iMinRed = iRed;
+				if (iMaxGreen < iGreen) iMaxGreen = iGreen;
+				if (iMinGreen > iGreen) iMinGreen = iGreen;
+				if (iMaxBlue < iBlue) iMaxBlue = iBlue;
+				if (iMinBlue > iBlue) iMinBlue = iBlue;
 			}
 		}
+		kGameIconInfo.iMaxColor = RGB(iMaxRed, iMaxGreen, iMaxBlue);
+		kGameIconInfo.iMinColor = RGB(iMinRed, iMinGreen, iMinBlue);
 		DeleteDC(hdcIcon);
 		::DeleteObject(hBitMapIcon);
 	}
@@ -1010,14 +1022,16 @@ void WowPlugin::ComPareImageNormalFuzzy(int iBeginX, int iEndX, int iBeginY, int
 		// ªÒ»°ICON ˝æ›
 		GameIconInfo& kGameIconInfo = itr->second;
 		kGameIconInfo.fComPareRate = 0;
+		kGameIconInfo.iComPareBeginX = 0;
+		kGameIconInfo.iComPareBeginY = 0;
 
 		// “—æ≠∆•≈‰…œ¡ÀæÕÀıºı∑∂Œß
 		if (m_iFishFuzzySumX != 0)
 		{
 			iBeginX = m_iFishFuzzySumX * 1.0f / m_iFishFuzzySumCount - 200;
 			iEndX = m_iFishFuzzySumX * 1.0f / m_iFishFuzzySumCount + 200;
-			iBeginY = m_iFishFuzzySumY * 1.0f / m_iFishFuzzySumCount - 100;
-			iEndY = m_iFishFuzzySumY * 1.0f / m_iFishFuzzySumCount + 100;
+			iBeginY = m_iFishFuzzySumY * 1.0f / m_iFishFuzzySumCount - 150;
+			iEndY = m_iFishFuzzySumY * 1.0f / m_iFishFuzzySumCount + 150;
 		}
 
 		// ÃÓ≥‰œÒÀÿ
@@ -1029,38 +1043,56 @@ void WowPlugin::ComPareImageNormalFuzzy(int iBeginX, int iEndX, int iBeginY, int
 			}
 		}
 
+		// ªÒ»°œÒÀÿ∑∂Œß
+		int iMaxRed = GetRValue(kGameIconInfo.iMaxColor);
+		int iMaxGreen = GetGValue(kGameIconInfo.iMaxColor);
+		int iMaxBlue = GetBValue(kGameIconInfo.iMaxColor);
+		int iMinRed = GetRValue(kGameIconInfo.iMinColor);
+		int iMinGreen = GetGValue(kGameIconInfo.iMinColor);
+		int iMinBlue = GetBValue(kGameIconInfo.iMinColor);
+		int iCompareCount = 0;
 		// ∆•≈‰œÒÀÿ
-		for (int k = 0; k < kGameIconInfo.iPixelWidth; ++k)
-		{
-			for (int l = 0; l < kGameIconInfo.iPixelHeight; ++l)
-			{
+		//for (int k = 0; k < kGameIconInfo.iPixelWidth; ++k)
+		//{
+			//for (int l = 0; l < kGameIconInfo.iPixelHeight; ++l)
+			//{
 				for (int i = iBeginX; i < iEndX; ++i)
 				{
 					for (int j = iBeginY; j < iEndY; ++j)
 					{
-						if (kGameIconInfo.aiPixelGameIcon[k * kGameIconInfo.iPixelHeight + l] == m_aiPoolGameSnap[i][j])
+						int iRed = GetRValue(m_aiPoolGameSnap[i][j]);
+						int iGreen = GetGValue(m_aiPoolGameSnap[i][j]);
+						int iBlue = GetBValue(m_aiPoolGameSnap[i][j]);
+
+						//if (kGameIconInfo.aiPixelGameIcon[k * kGameIconInfo.iPixelHeight + l] == m_aiPoolGameSnap[i][j])
+						if(iRed <= iMaxRed && iRed >= iMinRed && iGreen <= iMaxGreen && iGreen >= iMinGreen && iBlue <= iMaxBlue && iBlue >= iMinBlue)
 						{
+							iCompareCount++;
 							kGameIconInfo.fComPareRate = 2;
-							kGameIconInfo.iComPareBeginX = i;
-							kGameIconInfo.iComPareBeginY = j;
-							if (m_iFishFuzzySumCount < 20)
-							{
-								m_iFishFuzzySumX += kGameIconInfo.iComPareBeginX;
-								m_iFishFuzzySumY += kGameIconInfo.iComPareBeginY;
-								m_iFishFuzzySumCount++;
-							}
-							return;
+							kGameIconInfo.iComPareBeginX += i;
+							kGameIconInfo.iComPareBeginY += j;
 						}
 					}
 				}
-			}
-		}
+			//}
+		//}
 
 		// ∆•≈‰ ß∞‹÷ÿ÷√∑∂Œß
 		if (kGameIconInfo.fComPareRate < 1.0f)
 		{
 			kGameIconInfo.iComPareBeginX = -1;
 			kGameIconInfo.iComPareBeginY = -1;
+		}
+		else
+		{
+			kGameIconInfo.iComPareBeginX = kGameIconInfo.iComPareBeginX * 1.0f / iCompareCount;
+			kGameIconInfo.iComPareBeginY = kGameIconInfo.iComPareBeginY * 1.0f / iCompareCount;
+			if (m_iFishFuzzySumCount < 20)
+			{
+				m_iFishFuzzySumX += kGameIconInfo.iComPareBeginX;
+				m_iFishFuzzySumY += kGameIconInfo.iComPareBeginY;
+				m_iFishFuzzySumCount++;
+			}
 		}
 	}
 }
