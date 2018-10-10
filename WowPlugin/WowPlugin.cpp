@@ -137,6 +137,8 @@ void WowPlugin::GameLoop()
 	//				OutputDebugStringA("\n");
 	//			}
 	//			DeleteDC(hdcIcon);
+	//			DeleteObject(iconInfo.hbmColor);
+	//			DeleteObject(iconInfo.hbmMask);
 	//		}
 	//		OutputDebugStringA("\n");
 	//	}
@@ -585,8 +587,6 @@ void WowPlugin::AutoFish()
 									  		if (iconInfo.hbmColor != 0)
 									  		{
 									  			HDC hdcIcon = CreateCompatibleDC(NULL);
-									  			BITMAP  bitMapIcon;
-									  			GetObject(iconInfo.hbmColor, sizeof(BITMAP), &bitMapIcon);
 									  			SelectObject(hdcIcon, iconInfo.hbmColor);
 
 												if (bFindFishDif)
@@ -612,6 +612,8 @@ void WowPlugin::AutoFish()
 												
 									  			DeleteDC(hdcIcon);
 									  		}
+											DeleteObject(iconInfo.hbmColor);
+											DeleteObject(iconInfo.hbmMask);
 									  	}
 									  }
 								  }
@@ -638,8 +640,6 @@ void WowPlugin::AutoFish()
 											 if (iconInfo.hbmColor != 0)
 											 {
 												 HDC hdcIcon = CreateCompatibleDC(NULL);
-												 BITMAP  bitMapIcon;
-												 GetObject(iconInfo.hbmColor, sizeof(BITMAP), &bitMapIcon);
 												 SelectObject(hdcIcon, iconInfo.hbmColor);
 
 												 if (GetPixel(hdcIcon, 1, 1) == 9620713)
@@ -655,6 +655,8 @@ void WowPlugin::AutoFish()
 												 }
 												 DeleteDC(hdcIcon);
 											 }
+											 DeleteObject(iconInfo.hbmColor);
+											 DeleteObject(iconInfo.hbmMask);
 										 }
 									 }
 
@@ -748,7 +750,8 @@ HBITMAP WowPlugin::ScreenShotByWndPos(HWND hWnd)
 	nWidth = pRtWnd->right - pRtWnd->left;
 	nHeight = pRtWnd->bottom - pRtWnd->top;
 
-	hScrDC = CreateDC(L"DISPLAY", NULL, NULL, NULL); //为屏幕创建设备描述表	
+	
+	hScrDC = GetWindowDC(hWnd); //为屏幕创建设备描述表	
 	hMemDC = CreateCompatibleDC(hScrDC);             //为屏幕设备描述表创建兼容的内存设备描述表
 
 	hBitmap = CreateCompatibleBitmap(hScrDC, nWidth, nHeight); // 创建一个与屏幕设备描述表兼容的位图	
@@ -757,8 +760,9 @@ HBITMAP WowPlugin::ScreenShotByWndPos(HWND hWnd)
 	BitBlt(hMemDC, 0, 0, nWidth, nHeight, hScrDC, nX, nY, SRCCOPY);
 	hBitmap = (HBITMAP)SelectObject(hMemDC, hOldBitmap);
 
-	DeleteDC(hScrDC);
-	DeleteDC(hMemDC);
+	DeleteObject(hOldBitmap);
+	//DeleteDC(hMemDC);
+	ReleaseDC(hWnd, hScrDC);
 
 	return hBitmap;
 }

@@ -111,9 +111,9 @@ void ProcessControl(HWND hWnd, DWORD wParam)
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 
-	HDC hdc; //Handle Device Context
-	PAINTSTRUCT ps;
-	RECT rect;
+	//HDC hdc; //Handle Device Context
+	//PAINTSTRUCT ps;
+	//RECT rect;
 	switch (message)
 	{
 		case WM_PAINT:
@@ -141,7 +141,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 BOOL CreateWnd(HINSTANCE hInstance)
 {
-	WCHAR acWindowClass[256] = L"WowPlugin";
+	WCHAR acWindowClass[256] = L"HobbyPlugin";
 
 	WNDCLASSEX wcex;
 	wcex.cbSize = sizeof(WNDCLASSEX);
